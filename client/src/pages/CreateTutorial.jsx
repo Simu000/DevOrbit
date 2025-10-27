@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext.jsx";
 import FileUpload from "../components/FileUpload.jsx";
-import { createTutorialOffline } from "../utils/offlineDB.js"; 
 // import { useTutorials } from "../hooks/useTutorials";
+// import { createTutorialOffline } from "../utils/offlineDB.js"; // ❌ removed for build fix
 
 const CreateTutorial = () => {
   const { user } = useContext(AuthContext);
@@ -58,18 +58,16 @@ const CreateTutorial = () => {
     });
   };
 
-  // 👇 offline fallback function
-  const handleCreateOffline = async (tutorialData) => {
-    try {
-      await createTutorialOffline(tutorialData);
-      alert("📱 Tutorial saved offline! It will sync when you're back online.");
-      navigate("/tutorials");
-    } catch (err) {
-      setError("Failed to save tutorial offline: " + err.message);
-    }
-  };
+  // const handleCreateOffline = async (tutorialData) => {
+  //   try {
+  //     await createTutorialOffline(tutorialData);
+  //     alert("📱 Tutorial saved offline! It will sync when you're back online.");
+  //     navigate("/tutorials");
+  //   } catch (err) {
+  //     setError("Failed to save tutorial offline: " + err.message);
+  //   }
+  // };
 
-  // 👇 main submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -104,17 +102,11 @@ const CreateTutorial = () => {
         );
 
         console.log("Tutorial created:", response.data);
-        alert("Tutorial created successfully!");
+        alert("✅ Tutorial created successfully!");
         navigate("/tutorials");
       } else {
-        // ⚙️ OFFLINE: store locally
-        await handleCreateOffline({
-          title: formData.title,
-          description: formData.description,
-          videoUrl: formData.videoUrl,
-          category: formData.category,
-          tags: formData.tags,
-        });
+        // ⚙️ OFFLINE: temporarily disabled for production build
+        alert("📴 You are offline. Tutorial saving is disabled in this build.");
       }
     } catch (err) {
       console.error("Error creating tutorial:", err);
@@ -140,7 +132,6 @@ const CreateTutorial = () => {
     >
       <h2 style={{ marginBottom: "10px" }}>Create New Tutorial</h2>
 
-      {/* ⚠️ Offline indicator */}
       {!isOnline && (
         <div
           style={{
@@ -186,13 +177,78 @@ const CreateTutorial = () => {
         </div>
       )}
 
-      {/* FORM */}
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {/* title, category, description, upload etc. */}
-        {/* --- keep your same inputs and styles --- */}
-        {/* 👇 FileUpload and the rest of your existing JSX remains unchanged */}
-        {/* (no need to re-paste all, just ensure it's inside this form) */}
-        {/* keep your same tag and button sections */}
+        {/* Title */}
+        <input
+          type="text"
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          placeholder="Enter tutorial title"
+          required
+        />
+
+        {/* Description */}
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Enter tutorial description"
+          rows="4"
+          required
+        />
+
+        {/* Category */}
+        <select name="category" value={formData.category} onChange={handleChange}>
+          {categories.map((cat) => (
+            <option key={cat}>{cat}</option>
+          ))}
+        </select>
+
+        {/* Tags */}
+        <div>
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="Add a tag"
+          />
+          <button onClick={handleAddTag}>Add Tag</button>
+          <div style={{ marginTop: "10px" }}>
+            {formData.tags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  marginRight: "8px",
+                  padding: "5px 10px",
+                  backgroundColor: "#eee",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleRemoveTag(tag)}
+              >
+                {tag} ❌
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Video Upload */}
+        <FileUpload onFileUpload={setUploadedVideo} />
+
+        {/* Video URL */}
+        <input
+          type="url"
+          name="videoUrl"
+          value={formData.videoUrl}
+          onChange={handleChange}
+          placeholder="Enter video URL"
+        />
+
+        {/* Submit */}
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating..." : "Create Tutorial"}
+        </button>
       </form>
     </div>
   );
