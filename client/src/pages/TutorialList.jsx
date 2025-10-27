@@ -48,7 +48,17 @@ const TutorialList = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", flexWrap: "wrap", gap: "15px" }}>
+      {/* Header */}
+      <div 
+        style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: "30px", 
+          flexWrap: "wrap", 
+          gap: "15px" 
+        }}
+      >
         <h1>📚 Tutorials</h1>
         <button 
           onClick={() => navigate("/tutorials/create")} 
@@ -68,16 +78,19 @@ const TutorialList = () => {
       </div>
 
       {/* Filters & Sorting */}
-      <div style={{ 
-        marginBottom: "30px", 
-        padding: "20px", 
-        backgroundColor: "var(--card-bg, #f9f9f9)", 
-        borderRadius: "10px",
-        display: "flex",
-        gap: "20px",
-        flexWrap: "wrap",
-        alignItems: "center"
-      }}>
+      <div 
+        style={{ 
+          marginBottom: "30px", 
+          padding: "20px", 
+          backgroundColor: "var(--card-bg, #f9f9f9)", 
+          borderRadius: "10px",
+          display: "flex",
+          gap: "20px",
+          flexWrap: "wrap",
+          alignItems: "center"
+        }}
+      >
+        {/* Category Filter */}
         <div style={{ flex: 1, minWidth: "200px" }}>
           <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
             Category:
@@ -101,6 +114,7 @@ const TutorialList = () => {
           </select>
         </div>
 
+        {/* Sort By */}
         <div style={{ flex: 1, minWidth: "200px" }}>
           <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
             Sort by:
@@ -123,13 +137,16 @@ const TutorialList = () => {
           </select>
         </div>
 
+        {/* Tutorial Count */}
         <div style={{ display: "flex", alignItems: "flex-end", gap: "10px" }}>
-          <div style={{ 
-            padding: "10px 15px", 
-            backgroundColor: "var(--info-bg, #e3f2fd)",
-            borderRadius: "5px",
-            fontSize: "14px"
-          }}>
+          <div 
+            style={{ 
+              padding: "10px 15px", 
+              backgroundColor: "var(--info-bg, #e3f2fd)",
+              borderRadius: "5px",
+              fontSize: "14px"
+            }}
+          >
             <strong>{filteredTutorials.length}</strong> tutorials
           </div>
         </div>
@@ -137,12 +154,14 @@ const TutorialList = () => {
 
       {/* Tutorial Grid */}
       {filteredTutorials.length === 0 ? (
-        <div style={{ 
-          textAlign: "center", 
-          padding: "60px 20px",
-          backgroundColor: "var(--card-bg, #f9f9f9)",
-          borderRadius: "10px"
-        }}>
+        <div 
+          style={{ 
+            textAlign: "center", 
+            padding: "60px 20px",
+            backgroundColor: "var(--card-bg, #f9f9f9)",
+            borderRadius: "10px"
+          }}
+        >
           <h2>No tutorials found</h2>
           <p style={{ color: "var(--text-secondary, #666)" }}>
             Be the first to create a tutorial in this category!
@@ -164,14 +183,42 @@ const TutorialList = () => {
           </button>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: "20px", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))" }}>
+        <div 
+          style={{ 
+            display: "grid", 
+            gap: "20px", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))" 
+          }}
+        >
           {filteredTutorials.map((tutorial) => (
-            <TutorialCard 
-              key={tutorial.id} 
-              tutorial={tutorial} 
-              currentUser={user}
-              onUpdate={fetchTutorials}
-            />
+            <div key={tutorial.id} style={{ position: "relative" }}>
+              {/* 🆕 Beginner Badge */}
+              {tutorial.flagCount === -1 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "10px",
+                    left: "10px",
+                    backgroundColor: "#FF9800",
+                    color: "white",
+                    padding: "4px 8px",
+                    borderRadius: "8px",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.2)"
+                  }}
+                >
+                  🆕 Beginner
+                </span>
+              )}
+
+              {/* Tutorial Card */}
+              <TutorialCard 
+                tutorial={tutorial} 
+                currentUser={user}
+                onUpdate={fetchTutorials}
+              />
+            </div>
           ))}
         </div>
       )}

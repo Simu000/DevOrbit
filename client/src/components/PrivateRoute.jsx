@@ -5,11 +5,24 @@ import { AuthContext } from "../context/AuthContext.jsx";
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
 
-  if (loading) return <p>Loading...</p>; // wait until auth state is ready
+  if (loading) {
+    return (
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "center", 
+        alignItems: "center", 
+        height: "50vh" 
+      }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-  if (!user) return <Navigate to="/login" />; // redirect if not logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  return children; // render the protected component
+  return children;
 };
 
 export default PrivateRoute;
