@@ -6,6 +6,12 @@ import { githubAuth, githubCallback } from "../controllers/githubAuthController.
 
 const router = express.Router();
 
+// Add route debugging
+router.use((req, res, next) => {
+  console.log(`🔍 Auth Route Called: ${req.method} ${req.path}`);
+  next();
+});
+
 router.post(
   "/register",
   [
@@ -19,7 +25,10 @@ router.post(
       .matches(/[!@#$%^&*]/)
       .withMessage("Password must contain a symbol"),
   ],
-  authController.registerUser
+  (req, res, next) => {
+    console.log('📝 Register route hit');
+    authController.registerUser(req, res, next);
+  }
 );
 
 router.post(
@@ -28,11 +37,28 @@ router.post(
     body("email").isEmail().withMessage("Valid email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
-  authController.loginUser
+  (req, res, next) => {
+    console.log('🔑 Login route hit with data:', { email: req.body.email });
+    authController.loginUser(req, res, next);
+  }
 );
 
-router.get("/me", verifyToken, authController.getMe);
+router.get("/me", verifyToken, (req, res, next) => {
+  console.log('👤 GetMe route hit');
+  authController.getMe(req, res, next);
+});
+
 router.get("/github", githubAuth);
 router.get("/github/callback", githubCallback);
+
+// Test route to verify auth routes are working
+router.get("/test", (req, res) => {
+  console.log('✅ Auth test route working');
+  res.json({ 
+    success: true, 
+    message: "Auth routes are working!",
+    timestamp: new Date().toISOString()
+  });
+});
 
 export default router;

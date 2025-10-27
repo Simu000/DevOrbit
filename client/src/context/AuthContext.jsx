@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import { api } from "../services/api.js"; // Import the api instance
 
 export const AuthContext = createContext();
 
@@ -11,12 +11,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      axios
-        .get("http://localhost:3000/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      // Token is automatically added by interceptor now
+      api.get("/api/auth/me")
         .then((res) => setUser(res.data.user))
-        .catch(() => localStorage.removeItem("token"))
+        .catch((error) => {
+          console.error("Auto-login failed:", error);
+          localStorage.removeItem("token");
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -25,23 +26,28 @@ export const AuthProvider = ({ children }) => {
 
   // Register function
   const register = async (username, email, password) => {
-    const res = await axios.post("http://localhost:3000/api/auth/register", {
-      username,
-      email,
-      password,
-    });
+    const res = await api.post("/api/auth/register", { username, email, password });
     return res.data;
   };
 
-  // Login function
+  // Login function - FIXED
   const login = async (email, password) => {
-    const res = await axios.post("http://localhost:3000/api/auth/login", {
-      email,
-      password,
-    });
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-    return res.data;
+    try {
+      const res = await api.post("/api/auth/login", { email, password });
+      const token = res.data.token;
+      
+      if (token) {
+        localStorage.setItem("token", token);
+        setUser(res.data.user);
+        return res.data;
+      } else {
+        throw new Error("No token received from server");
+      }
+    } catch (error) {
+      console.error("Login error in AuthContext:", error);
+      localStorage.removeItem("token");
+      throw error;
+    }
   };
 
   // Logout function

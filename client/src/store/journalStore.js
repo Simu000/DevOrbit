@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import axios from "axios";
+import api from "./api.js"; // Use your configured api instance
 
 const useJournalStore = create((set, get) => ({
   entries: [],
@@ -10,16 +10,7 @@ const useJournalStore = create((set, get) => ({
   fetchEntries: async () => {
     set({ loading: true, error: null });
     try {
-      // Get token dynamically inside the function
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const res = await axios.get("http://localhost:3000/api/journal", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/journal");
       
       // Ensure entries is always an array
       const data = res.data;
@@ -44,19 +35,7 @@ const useJournalStore = create((set, get) => ({
   addEntry: async (entryData) => {
     set({ loading: true, error: null });
     try {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const res = await axios.post(
-        "http://localhost:3000/api/journal", 
-        entryData, 
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await api.post("/api/journal", entryData);
       
       // Add new entry to the beginning of the list
       set({ 
@@ -75,73 +54,5 @@ const useJournalStore = create((set, get) => ({
     }
   },
 
-  // Update existing entry
-  updateEntry: async (id, entryData) => {
-    set({ loading: true, error: null });
-    try {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      await axios.put(
-        `http://localhost:3000/api/journal/${id}`, 
-        entryData, 
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      
-      // Update locally
-      const current = Array.isArray(get().entries) ? get().entries : [];
-      set({
-        entries: current.map((e) => 
-          e.id === id ? { ...e, ...entryData } : e
-        ),
-        loading: false
-      });
-    } catch (err) {
-      console.error("Error updating journal entry:", err);
-      set({ 
-        error: err.response?.data?.message || err.message || "Failed to update entry",
-        loading: false 
-      });
-      throw err;
-    }
-  },
-
-  // Delete an entry
-  deleteEntry: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      await axios.delete(`http://localhost:3000/api/journal/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      const current = Array.isArray(get().entries) ? get().entries : [];
-      set({ 
-        entries: current.filter((e) => e.id !== id),
-        loading: false 
-      });
-    } catch (err) {
-      console.error("Error deleting journal entry:", err);
-      set({ 
-        error: err.response?.data?.message || err.message || "Failed to delete entry",
-        loading: false 
-      });
-      throw err;
-    }
-  },
-
-  // Clear error
-  clearError: () => set({ error: null }),
+  // Update and delete functions similarly...
 }));
-
-export default useJournalStore;

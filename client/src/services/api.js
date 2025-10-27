@@ -11,9 +11,13 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor for debugging
+// Add request interceptor to include token
 api.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     console.log('Making API call to:', config.url);
     return config;
   },
@@ -27,10 +31,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
+    
+    // Auto-logout on 401 Unauthorized
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = '/login';
+    }
+    
     return Promise.reject(error);
   }
 );
 
+// Your existing functions...
 async function fetchRegisteredUsers(data) {
   try {
     const response = await api.post('/api/auth/register', data);
@@ -49,10 +61,11 @@ async function fetchLoginUsers(data) {
   }
 }
 
-// Add this for debugging
 console.log('API Base URL:', API_BASE_URL);
 console.log('Environment:', import.meta.env.MODE);
 
+// Export both the functions and the api instance
+export { api };
 export default {
   fetchRegisteredUsers,
   fetchLoginUsers,

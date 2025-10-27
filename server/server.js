@@ -29,7 +29,11 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use((req, res, next) => {
+  console.log(`🌐 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  console.log('Request Body:', req.body);
+  next();
+});
 // Routes
 app.use("/api/auth", authRoutes); // Auth routes (register, login, /me)
 app.use("/api/chat", chatRoutes); // Chat room and messaging routes
@@ -45,6 +49,14 @@ app.use("/api/reports", reportRoutes); // Report/moderation routes
 app.use("/api/reputation", reputationRoutes); // Reputation system routes
 
 // Optional test route: Get all users
+
+app.get('/api/debug', (req, res) => {
+  res.json({ 
+    message: 'Server is running!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 app.get("/api/users", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
