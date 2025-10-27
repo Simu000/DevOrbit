@@ -1,0 +1,204 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
+  username         String             @unique
+  password         String
+  githubId         String?            @unique
+  avatar           String?
+  
+  // NEW: Reputation System
+  reputation       Int                @default(0)
+  level            String             @default("Beginner") // Beginner, Contributor, Expert, Master
+  canPostPublic    Boolean            @default(false)
+  role             String             @default("user") // user, moderator, admin
+  
+  // Existing Relations
+  tutorials        Tutorial[]
+  journals         Journal[]
+  supportPosts     SupportPost[]
+  supportComments  SupportComment[]
+  resources        Resource[]
+  
+  // NEW: DevOrbit Relations
+  ratings          Rating[]
+  reports          Report[]
+  badges           Badge[]
+  activities       Activity[]
+  messages         Message[]
+  chatRooms        ChatRoom[]         @relation("RoomMembers")
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  
+  createdAt        DateTime           @default(now())
+}
+
+model Tutorial {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  videoUrl    String?  // Changed to optional for uploaded videos
+  
+  // NEW: Video Upload Features
+  videoType      String   @default("external") // "external" or "uploaded"
+  uploadedVideo  String?  // Cloudinary URL or file path for uploaded videos
+  videoPublicId  String?  // Cloudinary public ID for video management
+  videoDuration  Int?     // Video duration in seconds
+  fileSize       Int?     // File size in bytes for uploaded videos
+  
+  // Existing DevOrbit Features
+  category    String   @default("General") // Web Dev, Mobile, DevOps, AI/ML, etc.
+  tags        String[] // ["react", "nodejs", "typescript"]
+  views       Int      @default(0)
+  averageRating Float  @default(0)
+  isPublic    Boolean  @default(true) // Hidden if flagged 3+ times
+  flagCount   Int      @default(0)
+  
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  // Relations
+  ratings     Rating[]
+  reports     Report[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tutorials")
+}
+
+// NEW: Rating System
+model Rating {
+  id         Int      @id @default(autoincrement())
+  value      Int      // 1-5 stars
+  comment    String?
+  
+  tutorialId Int
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  
+  createdAt  DateTime @default(now())
+  
+  @@unique([tutorialId, userId]) // One rating per user per tutorial
+}
+
+// NEW: Report/Moderation System
+model Report {
+  id         Int      @id @default(autoincrement())
+  reason     String   // "spam", "inappropriate", "low-quality", "copyright"
+  details    String?
+  status     String   @default("pending") // pending, approved, rejected
+  
+  tutorialId Int
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  
+  reporterId Int
+  user       User     @relation(fields: [reporterId], references: [id])
+  
+  createdAt  DateTime @default(now())
+}
+
+// NEW: Reputation/Gamification
+model Badge {
+  id        Int      @id @default(autoincrement())
+  name      String   // "First Tutorial", "Helpful Reviewer", "100 Points", "Top Contributor"
+  icon      String   // Emoji or icon identifier
+  description String?
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  earnedAt  DateTime @default(now())
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  type      String   // "tutorial_created", "rating_given", "helpful_rating", "tutorial_viewed"
+  points    Int      // Points earned for this activity
+  details   String?  // JSON string with additional info
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+// NEW: Chat System
+model ChatRoom {
+  id        Int       @id @default(autoincrement())
+  name      String    // "General", "React Help", "Job Board"
+  type      String    @default("public") // public, private, direct
+  description String?
+  
+  messages  Message[]
+  members   User[]    @relation("RoomMembers")
+  
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  encrypted Boolean  @default(false)
+  
+  roomId    Int
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  readBy    Int[]    @default([]) // Array of user IDs who read this message
+  
+  createdAt DateTime @default(now())
+}
+
+// EXISTING: Keep all existing models
+model Journal {
+  id        Int      @id @default(autoincrement())
+  text      String
+  mood      String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model SupportPost {
+  id        Int              @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime         @default(now())
+  authorId  Int
+  author    User             @relation(fields: [authorId], references: [id])
+  comments  SupportComment[]
+}
+
+model SupportComment {
+  id        Int         @id @default(autoincrement())
+  content   String
+  createdAt DateTime    @default(now())
+  authorId  Int
+  author    User        @relation(fields: [authorId], references: [id])
+  postId    Int
+  post      SupportPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Resource {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  url         String
+  category    String
+  createdAt   DateTime @default(now())
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+}
