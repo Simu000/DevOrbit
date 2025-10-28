@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import api from "./api.js"; // Use your configured api instance
+import { api } from "../services/api"; // Use your configured api instance
 
 const useJournalStore = create((set, get) => ({
   entries: [],
@@ -54,5 +54,57 @@ const useJournalStore = create((set, get) => ({
     }
   },
 
-  // Update and delete functions similarly...
+  // Update entry
+  updateEntry: async (id, entryData) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await api.put(`/api/journal/${id}`, entryData);
+      
+      // Update the entry in the list
+      set({ 
+        entries: get().entries.map(entry => 
+          entry.id === id ? res.data : entry
+        ),
+        loading: false 
+      });
+      
+      return res.data;
+    } catch (err) {
+      console.error("Error updating journal entry:", err);
+      set({ 
+        error: err.response?.data?.message || err.message || "Failed to update entry",
+        loading: false 
+      });
+      throw err;
+    }
+  },
+
+  // Delete entry
+  deleteEntry: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await api.delete(`/api/journal/${id}`);
+      
+      // Remove the entry from the list
+      set({ 
+        entries: get().entries.filter(entry => entry.id !== id),
+        loading: false 
+      });
+    } catch (err) {
+      console.error("Error deleting journal entry:", err);
+      set({ 
+        error: err.response?.data?.message || err.message || "Failed to delete entry",
+        loading: false 
+      });
+      throw err;
+    }
+  },
+
+  // Clear error
+  clearError: () => {
+    set({ error: null });
+  }
 }));
+
+// Add default export
+export default useJournalStore;

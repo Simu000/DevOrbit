@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// IMPORTANT: Make sure VITE_API_URL is set in your .env file
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+console.log('🔧 API Configuration:');
+console.log('  Base URL:', API_BASE_URL);
+console.log('  Environment:', import.meta.env.MODE);
+console.log('  VITE_API_URL:', import.meta.env.VITE_API_URL);
 
 // Create axios instance with default config
 const api = axios.create({
@@ -18,7 +24,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('Making API call to:', config.url);
+    console.log('📤 Making API call to:', config.baseURL + config.url);
     return config;
   },
   (error) => {
@@ -28,9 +34,16 @@ api.interceptors.request.use(
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
     
     // Auto-logout on 401 Unauthorized
     if (error.response?.status === 401) {
@@ -60,9 +73,6 @@ async function fetchLoginUsers(data) {
     throw error;
   }
 }
-
-console.log('API Base URL:', API_BASE_URL);
-console.log('Environment:', import.meta.env.MODE);
 
 // Export both the functions and the api instance
 export { api };
