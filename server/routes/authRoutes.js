@@ -1,8 +1,8 @@
+// routes/authRoutes.js
 import express from "express";
 import { body } from "express-validator";
-import authController from "../controllers/authController.js";
+import authController from "../controllers/authController.js"; // Default import
 import { verifyToken } from "../middleware/authMiddleware.js";
-import { githubAuth, githubCallback } from "../controllers/githubAuthController.js";
 
 const router = express.Router();
 
@@ -20,15 +20,8 @@ router.post(
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters")
-      .matches(/\d/)
-      .withMessage("Password must contain a number")
-      .matches(/[!@#$%^&*]/)
-      .withMessage("Password must contain a symbol"),
   ],
-  (req, res, next) => {
-    console.log('📝 Register route hit');
-    authController.registerUser(req, res, next);
-  }
+  authController.registerUser // Access via default export
 );
 
 router.post(
@@ -37,19 +30,10 @@ router.post(
     body("email").isEmail().withMessage("Valid email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
-  (req, res, next) => {
-    console.log('🔑 Login route hit with data:', { email: req.body.email });
-    authController.loginUser(req, res, next);
-  }
+  authController.loginUser // Access via default export
 );
 
-router.get("/me", verifyToken, (req, res, next) => {
-  console.log('👤 GetMe route hit');
-  authController.getMe(req, res, next);
-});
-
-router.get("/github", githubAuth);
-router.get("/github/callback", githubCallback);
+router.get("/me", verifyToken, authController.getMe); // Access via default export
 
 // Test route to verify auth routes are working
 router.get("/test", (req, res) => {

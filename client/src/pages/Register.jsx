@@ -1,3 +1,4 @@
+// pages/Register.jsx
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
@@ -5,27 +6,44 @@ import { useNavigate, Link } from "react-router-dom";
 const Register = () => {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ 
+    username: "", 
+    email: "", 
+    password: "" 
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // Clear error when user types
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
     try {
       const { username, email, password } = formData;
       await register(username, email, password);
       setFormData({ username: "", email: "", password: "" });
+      
+      // Show success message and redirect to login
+      alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err) {
-      console.log("Register Error:", err.response?.data);
+      console.error("Registration error:", err);
+      
+      // Handle different error formats
       if (err.response?.data?.errors) {
         setError(err.response.data.errors.map(e => e.msg).join(", "));
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
       } else {
-        setError(err.response?.data?.message || "Registration failed");
+        setError("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -33,55 +51,168 @@ const Register = () => {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px", margin: "50px auto" }}>
-      <h1>Register</h1>
-      {error && <p style={{ color: "red", padding: "10px", backgroundColor: "#ffe6e6", borderRadius: "5px" }}>{error}</p>}
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-        <input 
-          name="username" 
-          placeholder="Username" 
-          value={formData.username} 
-          onChange={handleChange}
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
-        <input 
-          name="email" 
-          type="email"
-          placeholder="Email" 
-          value={formData.email} 
-          onChange={handleChange}
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
-        <input 
-          name="password" 
-          type="password" 
-          placeholder="Password (min 6 chars, 1 number, 1 symbol)" 
-          value={formData.password} 
-          onChange={handleChange}
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
+    <div style={{ 
+      padding: "40px 20px", 
+      maxWidth: "400px", 
+      margin: "50px auto",
+      backgroundColor: "var(--bg-primary)",
+      borderRadius: "12px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+    }}>
+      <h1 style={{ textAlign: "center", marginBottom: "30px" }}>Register</h1>
+      
+      {error && (
+        <div style={{ 
+          color: "#d32f2f", 
+          padding: "12px 15px", 
+          backgroundColor: "#ffebee", 
+          borderRadius: "8px",
+          marginBottom: "20px",
+          border: "1px solid #ffcdd2",
+          fontSize: "14px"
+        }}>
+          ❌ {error}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "500",
+            color: "var(--text-primary)",
+            fontSize: "14px"
+          }}>
+            Username
+          </label>
+          <input 
+            name="username" 
+            placeholder="Enter your username" 
+            value={formData.username} 
+            onChange={handleChange}
+            required
+            disabled={loading}
+            style={{ 
+              width: "100%",
+              padding: "12px 15px",
+              fontSize: "14px",
+              borderRadius: "8px",
+              border: "1px solid var(--border-color)",
+              backgroundColor: "var(--input-bg)",
+              color: "var(--text-primary)",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "500",
+            color: "var(--text-primary)",
+            fontSize: "14px"
+          }}>
+            Email Address
+          </label>
+          <input 
+            name="email" 
+            type="email"
+            placeholder="Enter your email" 
+            value={formData.email} 
+            onChange={handleChange}
+            required
+            disabled={loading}
+            style={{ 
+              width: "100%",
+              padding: "12px 15px",
+              fontSize: "14px",
+              borderRadius: "8px",
+              border: "1px solid var(--border-color)",
+              backgroundColor: "var(--input-bg)",
+              color: "var(--text-primary)",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "500",
+            color: "var(--text-primary)",
+            fontSize: "14px"
+          }}>
+            Password
+          </label>
+          <input 
+            name="password" 
+            type="password" 
+            placeholder="Enter your password (min 6 characters)" 
+            value={formData.password} 
+            onChange={handleChange}
+            required
+            disabled={loading}
+            minLength={6}
+            style={{ 
+              width: "100%",
+              padding: "12px 15px",
+              fontSize: "14px",
+              borderRadius: "8px",
+              border: "1px solid var(--border-color)",
+              backgroundColor: "var(--input-bg)",
+              color: "var(--text-primary)",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
+        
         <button 
           type="submit"
           disabled={loading}
           style={{ 
-            padding: "10px", 
+            padding: "14px",
             cursor: loading ? "not-allowed" : "pointer",
-            backgroundColor: "#4CAF50",
+            backgroundColor: loading ? "#ccc" : "#4CAF50",
             color: "white",
             border: "none",
-            borderRadius: "5px",
-            fontSize: "16px"
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "600",
+            transition: "background-color 0.2s",
+            marginTop: "10px"
           }}
         >
-          {loading ? "Registering..." : "Register"}
+          {loading ? "Registering..." : "Create Account"}
         </button>
       </form>
-      <p style={{ marginTop: "20px", textAlign: "center" }}>
-        Already have an account? <Link to="/login">Login here</Link>
-      </p>
+      
+      <div style={{ 
+        marginTop: "30px", 
+        textAlign: "center",
+        paddingTop: "20px",
+        borderTop: "1px solid var(--border-color)"
+      }}>
+        <p style={{ 
+          margin: 0,
+          color: "var(--text-secondary)",
+          fontSize: "14px"
+        }}>
+          Already have an account?{" "}
+          <Link 
+            to="/login" 
+            style={{ 
+              color: "#2196F3", 
+              textDecoration: "none",
+              fontWeight: "600"
+            }}
+          >
+            Login here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

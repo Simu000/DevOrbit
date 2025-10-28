@@ -1,7 +1,7 @@
+// pages/Login.jsx
 import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
-import GitHubOAuth from "../components/GitHubOAuth.jsx";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -12,20 +12,30 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // Clear error when user types
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
     try {
       const { email, password } = formData;
       await login(email, password);
       setFormData({ email: "", password: "" });
       navigate("/dashboard");
     } catch (err) {
-      console.log("Login Error:", err.response?.data);
-      setError(err.response?.data?.message || "Login failed");
+      console.error("Login error:", err);
+      
+      // Handle different error formats
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("Login failed. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -57,20 +67,6 @@ const Login = () => {
         }}>
           Welcome Back
         </h1>
-        
-        {/* GitHub OAuth Button */}
-        <GitHubOAuth />
-        
-        <div style={{ 
-          display: "flex", 
-          alignItems: "center", 
-          margin: "25px 0",
-          color: "var(--text-secondary, #666)"
-        }}>
-          <div style={{ flex: 1, height: "1px", backgroundColor: "var(--border-color, #e0e0e0)" }}></div>
-          <span style={{ padding: "0 15px", fontSize: "14px" }}>or</span>
-          <div style={{ flex: 1, height: "1px", backgroundColor: "var(--border-color, #e0e0e0)" }}></div>
-        </div>
 
         {error && (
           <div style={{ 
@@ -82,7 +78,7 @@ const Login = () => {
             border: "1px solid #ffcdd2",
             fontSize: "14px"
           }}>
-            {error}
+            ❌ {error}
           </div>
         )}
         
@@ -104,6 +100,7 @@ const Login = () => {
               onChange={handleChange}
               placeholder="Enter your email"
               required
+              disabled={loading}
               style={{ 
                 width: "100%",
                 padding: "12px 15px",
@@ -134,6 +131,7 @@ const Login = () => {
               onChange={handleChange}
               placeholder="Enter your password"
               required
+              disabled={loading}
               style={{ 
                 width: "100%",
                 padding: "12px 15px",
@@ -175,12 +173,6 @@ const Login = () => {
               fontWeight: "600",
               transition: "background-color 0.2s",
               marginTop: "10px"
-            }}
-            onMouseOver={(e) => {
-              if (!loading) e.target.style.backgroundColor = "#45a049";
-            }}
-            onMouseOut={(e) => {
-              if (!loading) e.target.style.backgroundColor = "#4CAF50";
             }}
           >
             {loading ? "Logging in..." : "Login"}
