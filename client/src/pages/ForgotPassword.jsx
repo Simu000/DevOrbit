@@ -30,65 +30,96 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px", margin: "50px auto" }}>
-      <h1>Reset Your Password</h1>
-      <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+    <div style={{ 
+      padding: "40px 20px", 
+      maxWidth: "400px", 
+      margin: "50px auto",
+      backgroundColor: "var(--bg-secondary)",
+      borderRadius: "10px",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+    }}>
+      <h1 style={{ textAlign: "center", marginBottom: "10px" }}>Reset Your Password</h1>
+      <p style={{ 
+        color: "var(--text-secondary)", 
+        marginBottom: "30px",
+        textAlign: "center" 
+      }}>
         Enter your email address and we'll send you a link to reset your password.
       </p>
 
       {message && (
         <div style={{ 
           color: "#4CAF50", 
-          padding: "10px", 
+          padding: "12px", 
           backgroundColor: "#e8f5e8", 
           borderRadius: "5px",
-          marginBottom: "20px"
+          marginBottom: "20px",
+          border: "1px solid #4CAF50"
         }}>
-          {message}
+          ✅ {message}
         </div>
       )}
 
       {error && (
         <div style={{ 
-          color: "red", 
-          padding: "10px", 
-          backgroundColor: "#ffe6e6", 
+          color: "#d32f2f", 
+          padding: "12px", 
+          backgroundColor: "#ffebee", 
           borderRadius: "5px",
-          marginBottom: "20px"
+          marginBottom: "20px",
+          border: "1px solid #d32f2f"
         }}>
-          {error}
+          ❌ {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email address"
+            required
+            style={{ 
+              padding: "12px", 
+              fontSize: "16px",
+              width: "100%",
+              border: "1px solid #ddd",
+              borderRadius: "5px",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
         <button 
           type="submit" 
           disabled={loading}
           style={{ 
-            padding: "10px", 
+            padding: "12px", 
             cursor: loading ? "not-allowed" : "pointer",
-            backgroundColor: "#2196F3",
+            backgroundColor: loading ? "#ccc" : "#2196F3",
             color: "white",
             border: "none",
             borderRadius: "5px",
-            fontSize: "16px"
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "background-color 0.3s"
           }}
         >
-          {loading ? "Sending..." : "Send Reset Link"}
+          {loading ? "Sending Reset Link..." : "Send Reset Link"}
         </button>
       </form>
 
-      <div style={{ marginTop: "20px", textAlign: "center" }}>
-        <Link to="/login" style={{ color: "#2196F3", textDecoration: "none" }}>
-          Back to Login
+      <div style={{ marginTop: "30px", textAlign: "center" }}>
+        <Link 
+          to="/login" 
+          style={{ 
+            color: "#2196F3", 
+            textDecoration: "none",
+            fontSize: "14px"
+          }}
+        >
+          ← Back to Login
         </Link>
       </div>
     </div>

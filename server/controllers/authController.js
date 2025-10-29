@@ -3,8 +3,154 @@ import { prismaClient } from "../utils/prismaClient.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
+import axios from "axios";
+import crypto from "crypto";
 
 const prisma = prismaClient();
+
+// Simple in-memory state store for OAuth state values (ttl-based)
+const oauthStates = new Map();
+const OAUTH_STATE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function storeState(state) {
+  oauthStates.set(state, Date.now());
+}
+
+function verifyAndDeleteState(state) {
+  const ts = oauthStates.get(state);
+  if (!ts) return false;
+  if (Date.now() - ts > OAUTH_STATE_TTL_MS) {
+    oauthStates.delete(state);
+    return false;
+  }
+  oauthStates.delete(state);
+  return true;
+}
+
+// Redirect to GitHub authorization URL
+export const redirectToGitHub = (req, res) => {
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const redirectUri = process.env.GITHUB_CALLBACK_URL;
+  if (!clientId || !redirectUri) {
+    return res.status(500).json({ message: "GitHub OAuth not configured on server" });
+  }
+
+  const state = crypto.randomBytes(12).toString("hex");
+  storeState(state);
+
+  const url = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(
+    clientId
+  )}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20user:email&state=${encodeURIComponent(
+    state
+  )}`;
+
+  return res.redirect(url);
+};
+
+// Handle GitHub callback, exchange code for token, fetch profile, create/find user, and redirect to client with JWT
+export const handleGitHubCallback = async (req, res) => {
+  const { code, state } = req.query;
+  if (!code) return res.status(400).json({ message: "Missing code in callback" });
+  if (!state || !verifyAndDeleteState(state)) {
+    console.warn("GitHub OAuth state missing or invalid", state);
+    // Continue but warn — better to reject in production
+    // return res.status(400).json({ message: "Invalid OAuth state" });
+  }
+
+  try {
+    const tokenResp = await axios.post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+        redirect_uri: process.env.GITHUB_CALLBACK_URL,
+      },
+      { headers: { Accept: "application/json" } }
+    );
+
+    const accessToken = tokenResp.data?.access_token;
+    if (!accessToken) {
+      console.error("GitHub token exchange failed:", tokenResp.data);
+      const clientErrRedirect = `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=oauth_failed`;
+      return res.redirect(clientErrRedirect);
+    }
+
+    // Fetch profile
+    const userResp = await axios.get("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    });
+    const emailsResp = await axios.get("https://api.github.com/user/emails", {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    });
+
+    const profile = userResp.data || {};
+    const emails = Array.isArray(emailsResp.data) ? emailsResp.data : [];
+    const primaryEmailObj = emails.find((e) => e.primary && e.verified) || emails.find((e) => e.verified) || emails[0];
+    const email = primaryEmailObj?.email || profile.email;
+
+    // Find or create user
+    let user = null;
+    if (email) {
+      user = await prisma.user.findUnique({ where: { email } });
+    }
+
+    // If user not found by email, try by username/login
+    if (!user && profile.login) {
+      user = await prisma.user.findUnique({ where: { username: profile.login } });
+    }
+
+    if (!user) {
+      // Try to create with available info. If username conflicts, append suffix.
+      let username = profile.login || (email ? email.split("@")[0] : `github_${Math.random().toString(36).substring(2, 8)}`);
+      // Ensure username uniqueness
+      let attempt = 0;
+      while (attempt < 5) {
+        try {
+          user = await prisma.user.create({
+            data: {
+              username,
+              email: email || null,
+              password: "",
+              avatar: profile.avatar_url || null,
+              reputation: 0,
+              level: "Beginner",
+              canPostPublic: false,
+              role: "user",
+            },
+          });
+          break;
+        } catch (err) {
+          // If username unique constraint failed, append suffix and retry
+          attempt += 1;
+          username = `${username}_${Math.floor(Math.random() * 9000) + 1000}`;
+        }
+      }
+    }
+
+    if (!user) {
+      console.error("Failed to create/find user for GitHub profile", profile);
+      const clientErrRedirect = `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=oauth_failed`;
+      return res.redirect(clientErrRedirect);
+    }
+
+    // Sign JWT
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET not set; cannot sign token");
+      const clientErrRedirect = `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=server_misconfigured`;
+      return res.redirect(clientErrRedirect);
+    }
+
+    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES || "24h" });
+
+    const clientRedirect = `${process.env.CLIENT_URL || "http://localhost:5173"}/login?token=${encodeURIComponent(token)}&username=${encodeURIComponent(user.username)}`;
+    return res.redirect(clientRedirect);
+  } catch (err) {
+    console.error("GitHub OAuth callback error:", err?.response?.data || err.message || err);
+    const clientErrRedirect = `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=oauth_failed`;
+    return res.redirect(clientErrRedirect);
+  }
+};
 
 async function registerUser(req, res) {
   try {

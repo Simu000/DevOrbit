@@ -1,35 +1,16 @@
 // src/components/GitHubOAuth.jsx
-import { useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 
 const GitHubOAuth = () => {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const handleGitHubLogin = () => {
     window.location.href = "http://localhost:3000/api/auth/github";
   };
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const username = urlParams.get('username');
-    const error = urlParams.get('error');
-
-    if (token && username) {
-      localStorage.setItem('token', token);
-      window.location.href = '/dashboard'; // Refresh to update auth state
-    }
-
-    if (error) {
-      alert('GitHub authentication failed: ' + error);
-    }
-  }, []);
-
   if (user) {
-    return null; // Don't show if already logged in
+    return null;
   }
 
   return (
@@ -52,7 +33,7 @@ const GitHubOAuth = () => {
         marginTop: "10px"
       }}
     >
-      <span>🐙</span>
+      <span>🐱</span>
       Continue with GitHub
     </button>
   );

@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 3000;
 const server = createServer(app);
 initializeSocket(server);
 
-// CORS Configuration for Production
+// CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, curl, etc.)
@@ -52,7 +52,7 @@ const corsOptions = {
       callback(null, true);
     } else {
       console.log('⚠️  CORS blocked origin:', origin);
-      callback(null, true); // Allow anyway for now, can restrict later
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -62,19 +62,19 @@ const corsOptions = {
   maxAge: 600 // Cache preflight requests for 10 minutes
 };
 
-// Middleware
+// Middleware - ORDER MATTERS!
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Request logging
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`🌐 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' && req.body) {
     console.log('Body:', req.body);
-    console.log('Origin:', req.headers.origin);
   }
+  console.log('Origin:', req.headers.origin);
   next();
 });
 
@@ -95,7 +95,8 @@ app.get("/", (req, res) => {
       resources: "/api/resources",
       chat: "/api/chat/*",
       reports: "/api/reports",
-      reputation: "/api/reputation"
+      reputation: "/api/reputation",
+      password_reset: "/api/auth/forgot-password"
     }
   });
 });
@@ -125,16 +126,16 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
-// Mount Routes
+// Mount Routes - ONLY ONCE!
 console.log('📦 Mounting routes...');
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", passwordResetRoutes); // Password reset routes
 app.use("/api/chat", chatRoutes);
 app.use("/api/tutorials", tutorialRoutes);
+app.use("/api/tutorials", ratingRoutes); // Mount rating routes under tutorials
 app.use("/api/journal", journalRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/resources", resourceRoutes);
-app.use("/api/auth", passwordResetRoutes);
-app.use("/api/tutorials", ratingRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/reputation", reputationRoutes);
 console.log('✅ All routes mounted');
@@ -199,5 +200,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📡 WebSocket: Initialized`);
   console.log(`🔗 Health check: /health`);
   console.log(`📊 Debug info: /api/debug`);
+  console.log(`🔐 Password reset: /api/auth/forgot-password`);
   console.log(`\n✅ Server ready to accept connections\n`);
 });

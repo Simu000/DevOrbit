@@ -1,6 +1,5 @@
-// context/AuthContext.jsx
 import { createContext, useState, useEffect } from "react";
-import { api } from "../services/api.js";
+import axios from "axios";
 
 export const AuthContext = createContext();
 
@@ -12,15 +11,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      api.get("/api/auth/me")
-        .then((res) => {
-          if (res.data && res.data.user) {
-            setUser(res.data.user);
-          }
+      axios
+        .get("http://localhost:3000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
         })
-        .catch((error) => {
-          console.error("Auto-login failed:", error);
+        .then((res) => setUser(res.data.user))
+        .catch(() => {
           localStorage.removeItem("token");
+          setUser(null);
         })
         .finally(() => setLoading(false));
     } else {
@@ -30,39 +28,29 @@ export const AuthProvider = ({ children }) => {
 
   // Register function
   const register = async (username, email, password) => {
-    try {
-      const res = await api.post("/api/auth/register", { 
-        username, 
-        email, 
-        password 
-      });
-      return res.data;
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
-    }
+    const res = await axios.post("http://localhost:3000/api/auth/register", {
+      username,
+      email,
+      password,
+    });
+    return res.data;
   };
 
   // Login function
   const login = async (email, password) => {
-    try {
-      const res = await api.post("/api/auth/login", { 
-        email, 
-        password 
-      });
-      
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        setUser(res.data.user || res.data);
-        return res.data;
-      } else {
-        throw new Error("No token received from server");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      localStorage.removeItem("token");
-      throw error;
-    }
+    const res = await axios.post("http://localhost:3000/api/auth/login", {
+      email,
+      password,
+    });
+    localStorage.setItem("token", res.data.token);
+    setUser(res.data.user);
+    return res.data;
+  };
+
+  // OAuth login function
+  const oauthLogin = (token, username) => {
+    localStorage.setItem("token", token);
+    setUser({ username }); // Set minimal user data
   };
 
   // Logout function
@@ -77,7 +65,8 @@ export const AuthProvider = ({ children }) => {
       loading, 
       register, 
       login, 
-      logout 
+      logout, 
+      oauthLogin 
     }}>
       {children}
     </AuthContext.Provider>

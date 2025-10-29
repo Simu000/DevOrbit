@@ -1,6 +1,6 @@
 // src/pages/ResetPassword.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 
 const ResetPassword = () => {
@@ -18,6 +18,9 @@ const ResetPassword = () => {
   useEffect(() => {
     if (token) {
       verifyToken();
+    } else {
+      setTokenValid(false);
+      setError("No reset token provided");
     }
   }, [token]);
 
@@ -67,89 +70,146 @@ const ResetPassword = () => {
 
   if (tokenValid === false) {
     return (
-      <div style={{ padding: "20px", maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
-        <h1>Invalid Reset Link</h1>
-        <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+      <div style={{ 
+        padding: "40px 20px", 
+        maxWidth: "400px", 
+        margin: "50px auto",
+        backgroundColor: "var(--bg-secondary)",
+        borderRadius: "10px",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        textAlign: "center"
+      }}>
+        <h1 style={{ color: "#d32f2f", marginBottom: "20px" }}>Invalid Reset Link</h1>
+        <p style={{ color: "var(--text-secondary)", marginBottom: "30px" }}>
           This password reset link is invalid or has expired.
+          Please request a new reset link.
         </p>
-        <button 
-          onClick={() => navigate("/forgot-password")}
+        <Link 
+          to="/forgot-password"
           style={{ 
-            padding: "10px 20px",
+            padding: "12px 24px",
             backgroundColor: "#2196F3",
             color: "white",
             border: "none",
             borderRadius: "5px",
-            cursor: "pointer"
+            cursor: "pointer",
+            textDecoration: "none",
+            fontSize: "16px",
+            display: "inline-block"
           }}
         >
           Get New Reset Link
-        </button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px", margin: "50px auto" }}>
-      <h1>Set New Password</h1>
+    <div style={{ 
+      padding: "40px 20px", 
+      maxWidth: "400px", 
+      margin: "50px auto",
+      backgroundColor: "var(--bg-secondary)",
+      borderRadius: "10px",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+    }}>
+      <h1 style={{ textAlign: "center", marginBottom: "30px" }}>Set New Password</h1>
 
       {message && (
         <div style={{ 
           color: "#4CAF50", 
-          padding: "10px", 
+          padding: "12px", 
           backgroundColor: "#e8f5e8", 
           borderRadius: "5px",
-          marginBottom: "20px"
+          marginBottom: "20px",
+          border: "1px solid #4CAF50"
         }}>
-          {message}
+          ✅ {message}
         </div>
       )}
 
       {error && (
         <div style={{ 
-          color: "red", 
-          padding: "10px", 
-          backgroundColor: "#ffe6e6", 
+          color: "#d32f2f", 
+          padding: "12px", 
+          backgroundColor: "#ffebee", 
           borderRadius: "5px",
-          marginBottom: "20px"
+          marginBottom: "20px",
+          border: "1px solid #d32f2f"
         }}>
-          {error}
+          ❌ {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="New password"
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm new password"
-          required
-          style={{ padding: "10px", fontSize: "14px" }}
-        />
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New password (min. 6 characters)"
+            required
+            minLength={6}
+            style={{ 
+              padding: "12px", 
+              fontSize: "16px",
+              width: "100%",
+              border: "1px solid #ddd",
+              borderRadius: "5px",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
+        <div>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password"
+            required
+            style={{ 
+              padding: "12px", 
+              fontSize: "16px",
+              width: "100%",
+              border: "1px solid #ddd",
+              borderRadius: "5px",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
         <button 
           type="submit" 
           disabled={loading || !tokenValid}
           style={{ 
-            padding: "10px", 
+            padding: "12px", 
             cursor: (loading || !tokenValid) ? "not-allowed" : "pointer",
             backgroundColor: (loading || !tokenValid) ? "#ccc" : "#4CAF50",
             color: "white",
             border: "none",
             borderRadius: "5px",
-            fontSize: "16px"
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "background-color 0.3s"
           }}
         >
-          {loading ? "Resetting..." : tokenValid === null ? "Verifying..." : "Reset Password"}
+          {loading ? "Resetting Password..." : 
+           tokenValid === null ? "Verifying Token..." : 
+           "Reset Password"}
         </button>
       </form>
+
+      <div style={{ marginTop: "30px", textAlign: "center" }}>
+        <Link 
+          to="/login" 
+          style={{ 
+            color: "#2196F3", 
+            textDecoration: "none",
+            fontSize: "14px"
+          }}
+        >
+          ← Back to Login
+        </Link>
+      </div>
     </div>
   );
 };

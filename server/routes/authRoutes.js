@@ -3,6 +3,7 @@ import express from "express";
 import { body } from "express-validator";
 import authController from "../controllers/authController.js"; // Default import
 import { verifyToken } from "../middleware/authMiddleware.js";
+import { githubAuth, githubCallback } from '../controllers/githubAuthController.js';
 
 const router = express.Router();
 
@@ -35,6 +36,9 @@ router.post(
 
 router.get("/me", verifyToken, authController.getMe); // Access via default export
 
+// GitHub OAuth routes
+router.get('/github', githubAuth);
+router.get('/github/callback', githubCallback);
 // Test route to verify auth routes are working
 router.get("/test", (req, res) => {
   console.log('✅ Auth test route working');

@@ -156,21 +156,24 @@ const Focus = () => {
         </button>
       </div>
 
-      <div style={{ 
-        marginTop: "40px", 
-        padding: "20px", 
-        backgroundColor: "#f9f9f9", 
+      <div style={{
+        marginTop: "40px",
+        padding: "20px",
+        backgroundColor: "var(--card-bg, #0f172a)",
+        color: "var(--text-primary, #e5e7eb)",
         borderRadius: "10px",
-        textAlign: "left"
+        textAlign: "left",
+        border: "1px solid rgba(255,255,255,0.04)",
+        boxShadow: "0 6px 18px rgba(2,6,23,0.6)"
       }}>
-        <h3>How to use:</h3>
-        <ul style={{ lineHeight: "1.8" }}>
-          <li>🎯 Work sessions are 25 minutes</li>
-          <li>☕ Break sessions are 5 minutes</li>
-          <li>▶️ Click Start to begin</li>
-          <li>⏸️ Click Pause to pause the timer</li>
-          <li>🔄 Click Reset to restart the current session</li>
-          <li>🔀 Click Switch to toggle between work and break modes</li>
+        <h3 style={{ marginTop: 0, color: "var(--text-primary, #e5e7eb)" }}>How to use:</h3>
+        <ul style={{ lineHeight: "1.8", paddingLeft: 0, margin: 0 }}>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>🎯</span><span>Work sessions are 25 minutes</span></li>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>☕</span><span>Break sessions are 5 minutes</span></li>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>▶️</span><span>Click Start to begin</span></li>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>⏸️</span><span>Click Pause to pause the timer</span></li>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>🔄</span><span>Click Reset to restart the current session</span></li>
+          <li style={{ display: "flex", gap: "10px", alignItems: "center", padding: "6px 0" }}><span style={{ width: 28, textAlign: "center" }}>🔀</span><span>Click Switch to toggle between work and break modes</span></li>
         </ul>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api } from "../services/api"; // Use your configured api instance
+import axios from "axios";
 
 const useJournalStore = create((set, get) => ({
   entries: [],
@@ -10,7 +10,16 @@ const useJournalStore = create((set, get) => ({
   fetchEntries: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await api.get("/api/journal");
+      // Get token dynamically inside the function
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const res = await axios.get("http://localhost:3000/api/journal", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       
       // Ensure entries is always an array
       const data = res.data;
@@ -35,7 +44,19 @@ const useJournalStore = create((set, get) => ({
   addEntry: async (entryData) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.post("/api/journal", entryData);
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const res = await axios.post(
+        "http://localhost:3000/api/journal", 
+        entryData, 
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       
       // Add new entry to the beginning of the list
       set({ 
@@ -54,21 +75,32 @@ const useJournalStore = create((set, get) => ({
     }
   },
 
-  // Update entry
+  // Update existing entry
   updateEntry: async (id, entryData) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.put(`/api/journal/${id}`, entryData);
+      const token = localStorage.getItem("token");
       
-      // Update the entry in the list
-      set({ 
-        entries: get().entries.map(entry => 
-          entry.id === id ? res.data : entry
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      await axios.put(
+        `http://localhost:3000/api/journal/${id}`, 
+        entryData, 
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      // Update locally
+      const current = Array.isArray(get().entries) ? get().entries : [];
+      set({
+        entries: current.map((e) => 
+          e.id === id ? { ...e, ...entryData } : e
         ),
-        loading: false 
+        loading: false
       });
-      
-      return res.data;
     } catch (err) {
       console.error("Error updating journal entry:", err);
       set({ 
@@ -79,15 +111,23 @@ const useJournalStore = create((set, get) => ({
     }
   },
 
-  // Delete entry
+  // Delete an entry
   deleteEntry: async (id) => {
     set({ loading: true, error: null });
     try {
-      await api.delete(`/api/journal/${id}`);
+      const token = localStorage.getItem("token");
       
-      // Remove the entry from the list
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      await axios.delete(`http://localhost:3000/api/journal/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const current = Array.isArray(get().entries) ? get().entries : [];
       set({ 
-        entries: get().entries.filter(entry => entry.id !== id),
+        entries: current.filter((e) => e.id !== id),
         loading: false 
       });
     } catch (err) {
@@ -101,10 +141,7 @@ const useJournalStore = create((set, get) => ({
   },
 
   // Clear error
-  clearError: () => {
-    set({ error: null });
-  }
+  clearError: () => set({ error: null }),
 }));
 
-// Add default export
 export default useJournalStore;
