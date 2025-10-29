@@ -1,4 +1,4 @@
-import { prismaClient } from "../utils/prismaClient.js";
+import { prismaClient } from "../routes/utils/prismaClient.js";
 import { validationResult } from "express-validator";
 
 const prisma = prismaClient();

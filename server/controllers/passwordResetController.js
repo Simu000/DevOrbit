@@ -1,9 +1,8 @@
-// server/controllers/passwordResetController.js
-import { prismaClient } from "../utils/prismaClient.js";
+import { prismaClient } from "../routes/utils/prismaClient.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { validationResult } from "express-validator";
-import { sendResetEmail } from "../utils/emailService.js"; // Import real email service
+import { sendResetEmail } from "../routes/utils/emailService.js"; // Import real email service
 
 const prisma = prismaClient();
 
@@ -17,7 +16,7 @@ export const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 
   try {
-    console.log(`🔐 Password reset requested for: ${email}`);
+    console.log(` Password reset requested for: ${email}`);
 
     const user = await prisma.user.findUnique({
       where: { email }
@@ -55,14 +54,14 @@ export const requestPasswordReset = async (req, res) => {
       });
     }
 
-    console.log(`   ✅ Reset process completed for: ${email}`);
+    console.log(`   Reset process completed for: ${email}`);
 
     res.json({ 
       message: "If an account with that email exists, a password reset link has been sent." 
     });
 
   } catch (error) {
-    console.error("❌ Password reset request error:", error);
+    console.error("Password reset request error:", error);
     res.status(500).json({ message: "Server error while processing reset request" });
   }
 };
@@ -77,7 +76,7 @@ export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
 
   try {
-    console.log(`🔐 Processing password reset with token`);
+    console.log(` Processing password reset with token`);
 
     const user = await prisma.user.findFirst({
       where: {
@@ -89,13 +88,13 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      console.log(`   ❌ Invalid or expired reset token`);
+      console.log(`    Invalid or expired reset token`);
       return res.status(400).json({ 
         message: "Invalid or expired reset token" 
       });
     }
 
-    console.log(`   ✅ Valid token found for user: ${user.username}`);
+    console.log(`    Valid token found for user: ${user.username}`);
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -110,14 +109,14 @@ export const resetPassword = async (req, res) => {
       }
     });
 
-    console.log(`   ✅ Password updated successfully for user: ${user.username}`);
+    console.log(`   Password updated successfully for user: ${user.username}`);
 
     res.json({ 
       message: "Password reset successfully. You can now login with your new password." 
     });
 
   } catch (error) {
-    console.error("❌ Password reset error:", error);
+    console.error("Password reset error:", error);
     res.status(500).json({ message: "Server error while resetting password" });
   }
 };
@@ -126,7 +125,7 @@ export const verifyResetToken = async (req, res) => {
   const { token } = req.params;
 
   try {
-    console.log(`🔐 Verifying reset token: ${token}`);
+    console.log(`Verifying reset token: ${token}`);
 
     const user = await prisma.user.findFirst({
       where: {
@@ -143,14 +142,14 @@ export const verifyResetToken = async (req, res) => {
     });
 
     if (!user) {
-      console.log(`   ❌ Token invalid or expired`);
+      console.log(`    Token invalid or expired`);
       return res.status(400).json({ 
         valid: false,
         message: "Invalid or expired reset token" 
       });
     }
 
-    console.log(`   ✅ Token valid for user: ${user.username}`);
+    console.log(`   Token valid for user: ${user.username}`);
 
     res.json({ 
       valid: true,
@@ -158,7 +157,7 @@ export const verifyResetToken = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Token verification error:", error);
+    console.error("Token verification error:", error);
     res.status(500).json({ 
       valid: false,
       message: "Server error while verifying token" 

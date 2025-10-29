@@ -13,9 +13,9 @@ const transporter = nodemailer.createTransport({
 // Verify connection
 transporter.verify(function (error, success) {
   if (error) {
-    console.log('❌ Email transporter error:', error);
+    console.log(' Email transporter error:', error);
   } else {
-    console.log('✅ Email server is ready to send messages');
+    console.log(' Email server is ready to send messages');
   }
 });
 
@@ -52,7 +52,7 @@ export const sendResetEmail = async (email, resetToken) => {
           <code>${resetUrl}</code>
         </div>
         
-        <p style="color: #d32f2f;"><strong>⚠️ This link will expire in 1 hour.</strong></p>
+        <p style="color: #d32f2f;"><strong> This link will expire in 1 hour.</strong></p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
           <p style="color: #666; font-size: 14px;">
@@ -72,11 +72,11 @@ export const sendResetEmail = async (email, resetToken) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Password reset email sent to: ${email}`);
-    console.log(`📧 Message ID: ${info.messageId}`);
+    console.log(` Password reset email sent to: ${email}`);
+    console.log(` Message ID: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error('❌ Failed to send email:', error);
+    console.error('Failed to send email:', error);
     return false;
   }
 };

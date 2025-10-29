@@ -71,7 +71,7 @@ export const initializeSocket = (server) => {
 
     socket.on('leave_room', (roomId) => {
       socket.leave(`room_${roomId}`);
-      console.log(`🚪 User ${socket.username} left room ${roomId}`);
+      console.log(`User ${socket.username} left room ${roomId}`);
     });
 
     // Handle sending messages
@@ -183,7 +183,7 @@ const loadAndJoinUserRooms = async (socket) => {
       socket.join(`room_${room.id}`);
     });
 
-    console.log(`✅ User ${socket.username} joined ${userRooms.length} rooms`);
+    console.log(`User ${socket.username} joined ${userRooms.length} rooms`);
   } catch (error) {
     console.error('Error loading user rooms:', error);
   }

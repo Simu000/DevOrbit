@@ -1,7 +1,7 @@
 // server/controllers/githubAuthController.js
 import axios from "axios";
 import jwt from "jsonwebtoken";
-import { prismaClient } from "../utils/prismaClient.js";
+import { prismaClient } from "../routes/utils/prismaClient.js";
 
 const prisma = prismaClient();
 

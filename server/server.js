@@ -24,45 +24,8 @@ const PORT = process.env.PORT || 3000;
 const server = createServer(app);
 initializeSocket(server);
 
-// CORS Configuration
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // List of allowed origins
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:4173',
-      /\.vercel\.app$/,  // Allow all Vercel apps
-      /\.netlify\.app$/,  // Allow all Netlify apps
-      /\.onrender\.com$/,  // Allow all Render apps
-    ];
-    
-    // Check if origin matches any allowed pattern
-    const isAllowed = allowedOrigins.some(pattern => {
-      if (pattern instanceof RegExp) {
-        return pattern.test(origin);
-      }
-      return origin === pattern;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log('⚠️  CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 600 // Cache preflight requests for 10 minutes
-};
 
-// Middleware - ORDER MATTERS!
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json());
@@ -70,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`🌐 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   if (process.env.NODE_ENV === 'development' && req.body) {
     console.log('Body:', req.body);
   }
@@ -81,7 +44,7 @@ app.use((req, res, next) => {
 // Root route
 app.get("/", (req, res) => {
   res.json({
-    message: "🚀 DevOrbit Server is running!",
+    message: "DevOrbit Server is running!",
     status: "OK",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
@@ -101,33 +64,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health check route
-app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Server is healthy",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// Debug route
-app.get('/api/debug', (req, res) => {
-  res.json({ 
-    message: 'Server is running!',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    database: process.env.DATABASE_URL ? 'Configured ✅' : 'Not configured ❌',
-    jwt: process.env.JWT_SECRET ? 'Configured ✅' : 'Not configured ❌',
-    port: PORT,
-    nodeVersion: process.version
-  });
-});
 
 // Mount Routes - ONLY ONCE!
-console.log('📦 Mounting routes...');
+console.log(' Mounting routes...');
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", passwordResetRoutes); // Password reset routes
 app.use("/api/chat", chatRoutes);
@@ -138,7 +77,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/reputation", reputationRoutes);
-console.log('✅ All routes mounted');
+console.log('All routes mounted');
 
 // Get all users (for testing)
 app.get("/api/users", async (req, res) => {
@@ -161,7 +100,7 @@ app.get("/api/users", async (req, res) => {
 
 // 404 handler - MUST BE AFTER ALL ROUTES
 app.use((req, res) => {
-  console.log('⚠️  404 - Route not found:', req.method, req.originalUrl);
+  console.log('  404 - Route not found:', req.method, req.originalUrl);
   res.status(404).json({ 
     message: "Route not found",
     path: req.originalUrl,
@@ -172,7 +111,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("❌ Error:", err);
+  console.error(" Error:", err);
   res.status(err.status || 500).json({
     message: err.message || "Internal server error",
     error: process.env.NODE_ENV === "development" ? err.stack : undefined,
@@ -181,25 +120,25 @@ app.use((err, req, res, next) => {
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
-  console.log("\n🛑 Shutting down gracefully...");
+  console.log("\n Shutting down gracefully...");
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  console.log("\n🛑 SIGTERM received, shutting down gracefully...");
+  console.log("\n SIGTERM received, shutting down gracefully...");
   await prisma.$disconnect();
   process.exit(0);
 });
 
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🚀 DevOrbit Server is running`);
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📡 WebSocket: Initialized`);
-  console.log(`🔗 Health check: /health`);
-  console.log(`📊 Debug info: /api/debug`);
-  console.log(`🔐 Password reset: /api/auth/forgot-password`);
-  console.log(`\n✅ Server ready to accept connections\n`);
+  console.log(`\n DevOrbit Server is running`);
+  console.log(` Port: ${PORT}`);
+  console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(` WebSocket: Initialized`);
+  console.log(` Health check: /health`);
+  console.log(` Debug info: /api/debug`);
+  console.log(` Password reset: /api/auth/forgot-password`);
+  console.log(`\n Server ready to accept connections\n`);
 });

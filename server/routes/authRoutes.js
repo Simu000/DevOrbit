@@ -41,7 +41,7 @@ router.get('/github', githubAuth);
 router.get('/github/callback', githubCallback);
 // Test route to verify auth routes are working
 router.get("/test", (req, res) => {
-  console.log('✅ Auth test route working');
+  console.log('Auth test route working');
   res.json({ 
     success: true, 
     message: "Auth routes are working!",
