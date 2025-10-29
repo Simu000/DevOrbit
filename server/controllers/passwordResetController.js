@@ -1,8 +1,8 @@
-import { prismaClient } from "../routes/utils/prismaClient.js";
+import { prismaClient } from "../utils/prismaClient.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { validationResult } from "express-validator";
-import { sendResetEmail } from "../routes/utils/emailService.js"; // Import real email service
+import { sendResetEmail } from "../utils/emailService.js"; // Import real email service
 
 const prisma = prismaClient();
 

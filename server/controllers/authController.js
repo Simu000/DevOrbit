@@ -1,5 +1,5 @@
 // controllers/authController.js
-import { prismaClient } from "../routes/utils/prismaClient.js";
+import { prismaClient } from "../utils/prismaClient.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";

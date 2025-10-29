@@ -1,5 +1,5 @@
 // server/controllers/chatController.js
-import { prismaClient } from "../routes/utils/prismaClient.js";
+import { prismaClient } from "../utils/prismaClient.js";
 
 const prisma = prismaClient();
 

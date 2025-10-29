@@ -24,16 +24,20 @@ const PORT = process.env.PORT || 3000;
 const server = createServer(app);
 initializeSocket(server);
 
+// Simple CORS for development
+app.use(cors({
+  origin: "http://localhost:5173", // Your frontend URL
+  credentials: true
+}));
 
-
-app.use(cors(corsOptions));
+// Middleware
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  console.log(` ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   if (process.env.NODE_ENV === 'development' && req.body) {
     console.log('Body:', req.body);
   }
@@ -44,7 +48,7 @@ app.use((req, res, next) => {
 // Root route
 app.get("/", (req, res) => {
   res.json({
-    message: "DevOrbit Server is running!",
+    message: " DevOrbit Server is running!",
     status: "OK",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
@@ -64,20 +68,44 @@ app.get("/", (req, res) => {
   });
 });
 
+// Health check route
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
-// Mount Routes - ONLY ONCE!
+// Debug route
+app.get('/api/debug', (req, res) => {
+  res.json({ 
+    message: 'Server is running!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    database: process.env.DATABASE_URL ? 'Configured ' : 'Not configured ',
+    jwt: process.env.JWT_SECRET ? 'Configured ' : 'Not configured ',
+    port: PORT,
+    nodeVersion: process.version
+  });
+});
+
+// Mount Routes
 console.log(' Mounting routes...');
 app.use("/api/auth", authRoutes);
-app.use("/api/auth", passwordResetRoutes); // Password reset routes
+app.use("/api/auth", passwordResetRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/tutorials", tutorialRoutes);
-app.use("/api/tutorials", ratingRoutes); // Mount rating routes under tutorials
+app.use("/api/tutorials", ratingRoutes);
 app.use("/api/journal", journalRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/reputation", reputationRoutes);
-console.log('All routes mounted');
+console.log(' All routes mounted');
 
 // Get all users (for testing)
 app.get("/api/users", async (req, res) => {
@@ -100,7 +128,7 @@ app.get("/api/users", async (req, res) => {
 
 // 404 handler - MUST BE AFTER ALL ROUTES
 app.use((req, res) => {
-  console.log('  404 - Route not found:', req.method, req.originalUrl);
+  console.log('⚠️  404 - Route not found:', req.method, req.originalUrl);
   res.status(404).json({ 
     message: "Route not found",
     path: req.originalUrl,
