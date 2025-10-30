@@ -42,29 +42,32 @@ const RatingModal = ({ tutorial, onClose, onSubmit, existingRating = null }) => 
     >
       <div
         style={{
-          backgroundColor: "white",
+          backgroundColor: "var(--card-bg, #0b1220)",
+          color: "var(--text-primary, #e5e7eb)",
           padding: "30px",
           borderRadius: "10px",
           maxWidth: "500px",
           width: "90%",
+          border: "1px solid rgba(255,255,255,0.04)",
+          boxShadow: "0 8px 30px rgba(2,6,23,0.7)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2>Rate Tutorial</h2>
-        <p style={{ color: "#666", marginBottom: "20px" }}>
+        <h2 style={{ marginTop: 0 }}>Rate Tutorial</h2>
+        <p style={{ color: "var(--text-secondary, #9ca3af)", marginBottom: "20px" }}>
           {tutorial.title}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "10px", fontWeight: "bold" }}>
+            <label style={{ display: "block", marginBottom: "10px", fontWeight: "600", color: "var(--text-primary, #e5e7eb)" }}>
               Your Rating:
             </label>
             <RatingStars rating={rating} onRate={setRating} size="large" />
           </div>
 
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "10px", fontWeight: "bold" }}>
+            <label style={{ display: "block", marginBottom: "10px", fontWeight: "600", color: "var(--text-primary, #e5e7eb)" }}>
               Comment (optional):
             </label>
             <textarea
@@ -75,8 +78,10 @@ const RatingModal = ({ tutorial, onClose, onSubmit, existingRating = null }) => 
               style={{
                 width: "100%",
                 padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
+                borderRadius: "6px",
+                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--input-bg, #071028)",
+                color: "var(--text-primary, #e5e7eb)",
                 fontSize: "14px",
               }}
             />
@@ -88,9 +93,10 @@ const RatingModal = ({ tutorial, onClose, onSubmit, existingRating = null }) => 
               onClick={onClose}
               style={{
                 padding: "10px 20px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                backgroundColor: "white",
+                borderRadius: "6px",
+                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "transparent",
+                color: "var(--text-primary, #e5e7eb)",
                 cursor: "pointer",
               }}
             >
@@ -101,9 +107,9 @@ const RatingModal = ({ tutorial, onClose, onSubmit, existingRating = null }) => 
               disabled={submitting}
               style={{
                 padding: "10px 20px",
-                borderRadius: "5px",
+                borderRadius: "6px",
                 border: "none",
-                backgroundColor: "#4CAF50",
+                backgroundColor: "var(--accent, #4CAF50)",
                 color: "white",
                 cursor: submitting ? "not-allowed" : "pointer",
               }}

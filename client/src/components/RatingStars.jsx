@@ -26,20 +26,20 @@ const RatingStars = ({ rating = 0, onRate, readonly = false, size = "medium" }) 
           onMouseEnter={() => !readonly && setHoverRating(star)}
           onMouseLeave={() => !readonly && setHoverRating(0)}
           style={{
-            fontSize: sizes[size],
-            cursor: readonly ? "default" : "pointer",
-            color: star <= displayRating ? "#FFD700" : "#CCCCCC",
-            transition: "color 0.2s",
-          }}
+              fontSize: sizes[size],
+              cursor: readonly ? "default" : "pointer",
+              color: star <= displayRating ? "#FFD700" : "var(--muted, #9ca3af)",
+              transition: "color 0.2s",
+            }}
         >
           ★
         </span>
       ))}
-      {rating > 0 && (
-        <span style={{ marginLeft: "8px", fontSize: "14px", color: "#666" }}>
-          ({rating.toFixed(1)})
-        </span>
-      )}
+        {rating > 0 && (
+          <span style={{ marginLeft: "8px", fontSize: "14px", color: "var(--text-secondary, #9ca3af)" }}>
+            ({rating.toFixed(1)})
+          </span>
+        )}
     </div>
   );
 };
