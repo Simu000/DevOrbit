@@ -9,7 +9,7 @@ import LoadingSpinner from "./components/LoadingSpinner.jsx";
 import ToastContainer from "./components/ToastContainer.jsx";
 import Footer from "./components/Footer.jsx";
 
-// Lazy-loaded components
+
 const TutorialList = lazy(() => import("./pages/TutorialList.jsx"));
 const CreateTutorial = lazy(() => import("./pages/CreateTutorial.jsx"));
 const UpdateTutorial = lazy(() => import("./pages/UpdateTutorial.jsx"));

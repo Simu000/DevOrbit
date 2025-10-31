@@ -33,7 +33,7 @@ export const initializeSocket = (server) => {
   });
 
   io.on('connection', (socket) => {
-    console.log(`🔗 User ${socket.username} (${socket.userId}) connected`);
+    console.log(` User ${socket.username} (${socket.userId}) connected`);
 
     // Join user to their personal room
     socket.join(`user_${socket.userId}`);
